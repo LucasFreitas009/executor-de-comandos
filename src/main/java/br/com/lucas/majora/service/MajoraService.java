@@ -11,22 +11,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import br.com.lucas.majora.commands.Command;
 import br.com.lucas.majora.model.log.Log;
 import br.com.lucas.majora.model.request.MajoraRequest;
-import br.com.lucas.majora.model.request.instruction.CommandInstruction;
 import br.com.lucas.majora.model.response.MajoraResponse;
-import tools.jackson.databind.ObjectMapper;
+import br.com.lucas.majora.view.MajoraCLI;
 
 @Service
 public class MajoraService {
 	private final RestTemplate rest;
-	private final ObjectMapper mapper;
+	private CommandService command;
 	private final VoskService vosk;
+	private MajoraCLI cli = new MajoraCLI();
 	
-	public MajoraService(RestTemplate rest, ObjectMapper mapper, VoskService vosk) {
+	public MajoraService(RestTemplate rest, CommandService command, VoskService vosk) {
 		this.rest = rest;
-		this.mapper = mapper;
+		this.command = command;
 		this.vosk = vosk;
 	}
 	
@@ -40,10 +39,7 @@ public class MajoraService {
 		
 		String instructionJson = response.getBody().getMessage().getContent();
 		
-		CommandInstruction instruction = mapper.readValue(instructionJson, CommandInstruction.class);
-		
-		
-		return ResponseEntity.ok(Command.execution(instruction));
+		return ResponseEntity.ok(command.executeCommand(instructionJson));
 	}
 	
 	public void SendVoice() {
@@ -63,14 +59,9 @@ public class MajoraService {
 		
 		ResponseEntity<MajoraResponse> response = rest.postForEntity("http://192.168.10.23:11434/api/chat", entity, MajoraResponse.class);
 		
-		String instructionJson = response.getBody().getMessage().getContent();
-		System.out.println(instructionJson);
+		String instruction = response.getBody().getMessage().getContent();
 		
-		CommandInstruction instruction = mapper.readValue(instructionJson, CommandInstruction.class);
-		
-		Log log = Command.execution(instruction);
-		
-		System.out.println(log.toString());
+		cli.logView(command.executeCommand(instruction));
 	}
 	
 }

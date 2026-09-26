@@ -6,11 +6,18 @@ import javax.sound.sampled.DataLine;
 import javax.sound.sampled.TargetDataLine;
 
 import org.springframework.stereotype.Service;
+import org.vosk.LibVosk;
+import org.vosk.LogLevel;
 import org.vosk.Model;
 import org.vosk.Recognizer;
 
+import br.com.lucas.majora.view.MajoraCLI;
+
 @Service
 public class VoskService {
+	
+	private MajoraCLI cli = new MajoraCLI();
+	
 	private static String extrairTextoPuro(String json, String chave) {
 
 		String busca = "\"" + chave + "\" : \"";
@@ -33,7 +40,8 @@ public class VoskService {
 	}
 
 	public String voice() {
-
+		LibVosk.setLogLevel(LogLevel.WARNINGS);
+		
 		// Caminho do modelo
 		String caminhoModelo = "/home/lucas/Documentos/vosk-model-pt-fb-v0.1.1-20220516_2113";
 
@@ -49,8 +57,6 @@ public class VoskService {
 
 			System.exit(1);
 		}
-
-		System.out.println("Carregando o modelo do Vosk... Por favor, aguarde.");
 
 		// Palavra que ativa o assistente
 		String palavraAtivacao = "computador";
@@ -80,18 +86,25 @@ public class VoskService {
 				    ]
 				""";
 
+		Thread loading = cli.loading();
+		loading.start();
+		
 		// Inicializa Vosk e microfone
 		try (Model modelo = new Model(caminhoModelo);
+				
+			Recognizer reconhecedor = new Recognizer(modelo, 16000, grammar);
 
-				Recognizer reconhecedor = new Recognizer(modelo, 16000, grammar);
-
-				TargetDataLine linhaMicrofone = (TargetDataLine) AudioSystem.getLine(info)) {
-
+			TargetDataLine linhaMicrofone = (TargetDataLine) AudioSystem.getLine(info)
+			) {
+			
+			loading.interrupt();
+			loading.join();
+			
 			// Inicia captura do microfone
 			linhaMicrofone.open(formatoAudio);
 			linhaMicrofone.start();
 
-			System.out.println("\n>>> Vosk pronto! Diga '" + palavraAtivacao + "' para começar...");
+			System.out.println("\n>>> Sistema Iniciado! Diga '" + palavraAtivacao + "' para começar...");
 
 			// Buffer de áudio
 			byte[] buffer = new byte[4096];
@@ -167,7 +180,7 @@ public class VoskService {
 								assistenteAtivo = false;
 
 								System.out.println(
-										"\n>>> Aguardando nova ativação... Por favor, aguarde o processamento da sua requisição.");
+										"\n>>> Processando requisição");
 								
 								return comando;
 							}

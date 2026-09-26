@@ -5,7 +5,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import br.com.lucas.majora.service.MajoraService;
-import br.com.lucas.majora.service.VoskService;
 
 @SpringBootApplication
 public class MajoraApplication implements CommandLineRunner{

@@ -29,13 +29,13 @@ public class Command {
 				}
 				
 				String command = String.join(" ", instruction.getCommand());
-				String logContent = String.join(" ", log);
+				List<String> logContent = log;
 				String context = instruction.getContext();
 				
 				return new Log(command, logContent, context);
 				
 			} catch(IOException e) {
-				return new Log("Empty", "Error", "Empty");
+				return new Log("Empty", null, "Empty");
 			}
 			
 		} else {

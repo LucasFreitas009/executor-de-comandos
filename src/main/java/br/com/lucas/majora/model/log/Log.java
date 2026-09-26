@@ -1,16 +1,18 @@
 package br.com.lucas.majora.model.log;
 
+import java.util.List;
+
 public class Log {
 	private String command;
-	private String log;
+	private List<String> log;
 	private String context;
 
-	public Log(String command, String log) {
+	public Log(String command, List<String> log) {
 		this.command = command;
 		this.log = log;
 	}
 	
-	public Log(String command, String log, String context) {
+	public Log(String command, List<String> log, String context) {
 		this.command = command;
 		this.log = log;
 		this.context = context;
@@ -32,11 +34,11 @@ public class Log {
 		this.command = command;
 	}
 
-	public String getLog() {
+	public List<String> getLog() {
 		return log;
 	}
 
-	public void setLog(String log) {
+	public void setLog(List<String >log) {
 		this.log = log;
 	}
 	
@@ -46,19 +48,5 @@ public class Log {
 	
 	public void setContext(String context) {
 		this.context = context;
-	}
-	
-	@Override
-	public String toString() {
-		return String.format(
-				"Comando: %s\n"
-			  + "context: %s\n"
-			  + "-".repeat(20)
-			  + "\nlog: %s\n"
-			  + "-".repeat(20),
-			  command,
-			  context,
-			  log
-		);
 	}
 }

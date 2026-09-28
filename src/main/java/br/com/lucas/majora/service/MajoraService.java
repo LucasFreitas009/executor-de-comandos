@@ -33,7 +33,7 @@ public class MajoraService {
 		
 		HttpEntity<MajoraRequest> entity = new HttpEntity<>(request, headers);
 		
-		ResponseEntity<MajoraResponse> response = rest.postForEntity("http://192.168.10.23:11434/api/chat", entity, MajoraResponse.class);
+		ResponseEntity<MajoraResponse> response = rest.postForEntity("http://localhost:11434/api/chat", entity, MajoraResponse.class);
 		
 		String instructionJson = response.getBody().getMessage().getContent();
 		
@@ -55,7 +55,7 @@ public class MajoraService {
 		
 		HttpEntity<MajoraRequest> entity = new HttpEntity<>(request, headers);
 		
-		ResponseEntity<MajoraResponse> response = rest.postForEntity("http://192.168.10.23:11434/api/chat", entity, MajoraResponse.class);
+		ResponseEntity<MajoraResponse> response = rest.postForEntity("http://localhost:11434/api/chat", entity, MajoraResponse.class);
 		
 		String instruction = response.getBody().getMessage().getContent();
 		

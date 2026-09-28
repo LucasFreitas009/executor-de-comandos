@@ -23,9 +23,9 @@ public class VoskService {
 		this.majoraService = majoraService;
 	}
 	
-	private static String extrairTextoPuro(String json, String chave) {
+	private static String textLog(String json, String key) {
 
-		String busca = "\"" + chave + "\" : \"";
+		String busca = "\"" + key + "\" : \"";
 
 		int inicio = json.indexOf(busca);
 
@@ -46,16 +46,13 @@ public class VoskService {
 
 	public void voice() {
 		LibVosk.setLogLevel(LogLevel.WARNINGS);
-		
-		// Caminho do modelo
-		String caminhoModelo = "/home/lucas/Documentos/vosk-model-pt-fb-v0.1.1-20220516_2113";
+				
+		String pathModel = "/home/lucas/Documentos/vosk-model-pt-fb-v0.1.1-20220516_2113";
 
-		// Configuração do áudio
-		AudioFormat formatoAudio = new AudioFormat(16000, 16, 1, true, false);
+		AudioFormat audioFormat = new AudioFormat(16000, 16, 1, true, false);
 
-		DataLine.Info info = new DataLine.Info(TargetDataLine.class, formatoAudio);
+		DataLine.Info info = new DataLine.Info(TargetDataLine.class, audioFormat);
 
-		// Verifica suporte ao microfone
 		if (!AudioSystem.isLineSupported(info)) {
 
 			System.err.println("Microfone não suportado com as configurações de áudio padrão.");
@@ -63,139 +60,73 @@ public class VoskService {
 			System.exit(1);
 		}
 
-		// Palavra que ativa o assistente
-		String palavraAtivacao = "computador";
+		String keyWord = "computador";
 
-		// Estado do assistente
-		boolean assistenteAtivo = false;
-
-		/*
-		 * Vocabulário permitido pela grammar.
-		 *
-		 * OBS: "computador" precisa estar aqui porque é a palavra que ativa o
-		 * assistente.
-		 */
-		String grammar = """
-				    [
-				        "computador",
-				        "bash",
-				        "src",
-				        "main",
-				        "home",
-				        "maven",
-				        "git",
-				        "github",
-				        "guit",
-				        "majora",
-				        "[unk]"
-				    ]
-				""";
+		boolean majoraActivated = false;
 
 		Thread loading = cli.loading();
 		loading.start();
 		
-		// Inicializa Vosk e microfone
-		try (Model modelo = new Model(caminhoModelo);
+		try (Model model = new Model(pathModel);
 				
-			Recognizer reconhecedor = new Recognizer(modelo, 16000, grammar);
+			Recognizer recognizer = new Recognizer(model, 16000);
 
-			TargetDataLine linhaMicrofone = (TargetDataLine) AudioSystem.getLine(info)
+			TargetDataLine microfone = (TargetDataLine) AudioSystem.getLine(info)
 			) {
 			
 			loading.interrupt();
 			loading.join();
 			
-			// Inicia captura do microfone
-			linhaMicrofone.open(formatoAudio);
-			linhaMicrofone.start();
+			microfone.open(audioFormat);
+			microfone.start();
 
-			System.out.println("\n>>> Sistema Iniciado! Diga '" + palavraAtivacao + "' para começar...");
+			System.out.println("\n>>> Sistema Iniciado! Diga '" + keyWord + "' para começar...");
 
-			// Buffer de áudio
 			byte[] buffer = new byte[4096];
 
 			int bytesLidos;
 
-			// Captura continuamente o áudio
-			while ((bytesLidos = linhaMicrofone.read(buffer, 0, buffer.length)) >= 0) {
+			while ((bytesLidos = microfone.read(buffer, 0, buffer.length)) >= 0) {
 
-				/*
-				 * O Vosk retorna true quando considera que terminou um trecho de fala.
-				 */
-				if (reconhecedor.acceptWaveForm(buffer, bytesLidos)) {
+				if (recognizer.acceptWaveForm(buffer, bytesLidos)) {
 
-					String resultadoJson = reconhecedor.getResult();
+					String jsonResult = recognizer.getResult();
 
-					String textoFinal = extrairTextoPuro(resultadoJson, "text");
+					String finalText = textLog(jsonResult, "text");
 
-					if (textoFinal.isEmpty()) {
+					if (finalText.isEmpty()) {
 						continue;
 					}
 
-					textoFinal = textoFinal.toLowerCase().trim();
+					finalText = finalText.toLowerCase().trim();
 
-					/*
-					 * ================================================== ASSISTENTE INATIVO
-					 * ==================================================
-					 *
-					 * Aqui procuramos pela palavra "computador".
-					 */
+					if (!majoraActivated) {
 
-					if (!assistenteAtivo) {
+						if (finalText.contains(keyWord)) {
 
-						if (textoFinal.contains(palavraAtivacao)) {
+							majoraActivated = true;
 
-							// Encontramos a palavra de ativação
-							assistenteAtivo = true;
+							System.out.println("\n[SINAL] " + keyWord.toUpperCase() + " detectado!");
 
-							System.out.println("\n[SINAL] " + palavraAtivacao.toUpperCase() + " detectado!");
+							int position = finalText.indexOf(keyWord);
 
-							/*
-							 * Descobre se o usuário falou um comando junto com a palavra de ativação.
-							 *
-							 * Exemplo:
-							 *
-							 * "computador abra o terminal"
-							 *
-							 * Resultado:
-							 *
-							 * "abra o terminal"
-							 */
+							String command = finalText.substring(position + keyWord.length()).trim();
 
-							int posicao = textoFinal.indexOf(palavraAtivacao);
+							if (!command.isEmpty()) {
 
-							String comando = textoFinal.substring(posicao + palavraAtivacao.length()).trim();
+								System.out.println("[COMANDO RECONHECIDO]: " + command);
 
-							/*
-							 * ================================================== PALAVRA-CHAVE + COMANDO
-							 * ==================================================
-							 */
+								System.out.println(">>> Enviando '" + command + "' para processamento local...");
 
-							if (!comando.isEmpty()) {
-
-								System.out.println("[COMANDO RECONHECIDO]: " + comando);
-
-								System.out.println(">>> Enviando '" + comando + "' para processamento local...");
-
-								/*
-								 * O comando terminou.
-								 *
-								 * Volta para o estado inativo.
-								 */
-								assistenteAtivo = false;
+								majoraActivated = false;
 
 								System.out.println(
 										"\n>>> Processando requisição");
 								
-								majoraService.SendVoice(comando);
+								majoraService.SendVoice(command);
 								
 								System.out.println("Aguardando nova ativação...");
 							}
-
-							/*
-							 * ================================================== APENAS PALAVRA-CHAVE
-							 * ==================================================
-							 */
 
 							else {
 
@@ -204,68 +135,37 @@ public class VoskService {
 						}
 					}
 
-					/*
-					 * ================================================== ASSISTENTE ATIVO
-					 * ==================================================
-					 *
-					 * Aqui significa que o usuário falou:
-					 *
-					 * "computador"
-					 *
-					 * e agora está falando o comando.
-					 */
-
 					else {
 
-						System.out.println("\n[COMANDO RECONHECIDO]: " + textoFinal);
+						System.out.println("\n[COMANDO RECONHECIDO]: " + finalText);
 
-						/*
-						 * Comando especial para encerrar completamente o programa.
-						 */
-						if (textoFinal.equalsIgnoreCase("fechar assistente")) {
+						if (finalText.equalsIgnoreCase("fechar assistente")) {
 
 							System.out.println(">>> Desligando sistema de voz...");
 
 							break;
 						}
 
-						/*
-						 * Aqui futuramente entra o processamento do comando pelo Ollama.
-						 */
-						System.out.println(">>> Enviando '" + textoFinal + "' para processamento local...");
+						System.out.println(">>> Enviando '" + finalText + "' para processamento local...");
 
-						/*
-						 * O comando foi recebido.
-						 *
-						 * Agora o assistente volta a ficar INATIVO.
-						 */
-						assistenteAtivo = false;
+						majoraActivated = false;
 
 						System.out.println("\n>>> Processando requisição.");
 						
-						majoraService.SendVoice(textoFinal);
+						majoraService.SendVoice(finalText);
 					}
-				}
+					
+				} else {
 
-				/*
-				 * ========================================================== RESULTADO PARCIAL
-				 * ==========================================================
-				 *
-				 * Enquanto o usuário fala, mostramos a hipótese atual do Vosk, mas não
-				 * processamos o comando ainda.
-				 */
+					if (majoraActivated) {
 
-				else {
+						String parcialJson = recognizer.getPartialResult();
 
-					if (assistenteAtivo) {
+						String parcialText = textLog(parcialJson, "partial");
 
-						String parcialJson = reconhecedor.getPartialResult();
+						if (!parcialText.isEmpty()) {
 
-						String textoParcial = extrairTextoPuro(parcialJson, "partial");
-
-						if (!textoParcial.isEmpty()) {
-
-							System.out.print("\rOuvindo: " + textoParcial);
+							System.out.print("\rOuvindo: " + parcialText);
 						}
 					}
 				}

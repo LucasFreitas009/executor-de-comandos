@@ -20,13 +20,11 @@ import br.com.lucas.majora.view.MajoraCLI;
 public class MajoraService {
 	private final RestTemplate rest;
 	private CommandService command;
-	private final VoskService vosk;
 	private MajoraCLI cli = new MajoraCLI();
 	
-	public MajoraService(RestTemplate rest, CommandService command, VoskService vosk) {
+	public MajoraService(RestTemplate rest, CommandService command) {
 		this.rest = rest;
 		this.command = command;
-		this.vosk = vosk;
 	}
 	
 	public ResponseEntity<Log> sendJson(MajoraRequest request) {

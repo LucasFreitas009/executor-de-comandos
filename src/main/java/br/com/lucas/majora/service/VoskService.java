@@ -188,6 +188,8 @@ public class VoskService {
 										"\n>>> Processando requisição");
 								
 								majoraService.SendVoice(comando);
+								
+								System.out.println("Aguardando nova ativação...");
 							}
 
 							/*
@@ -239,7 +241,7 @@ public class VoskService {
 						 */
 						assistenteAtivo = false;
 
-						System.out.println("\n>>> Aguardando nova ativação... " + "Diga '" + palavraAtivacao + "'.");
+						System.out.println("\n>>> Processando requisição.");
 						
 						majoraService.SendVoice(textoFinal);
 					}

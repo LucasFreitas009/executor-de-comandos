@@ -17,6 +17,11 @@ import br.com.lucas.majora.view.MajoraCLI;
 public class VoskService {
 	
 	private MajoraCLI cli = new MajoraCLI();
+	private final MajoraService majoraService;
+	
+	public VoskService(MajoraService majoraService) {
+		this.majoraService = majoraService;
+	}
 	
 	private static String extrairTextoPuro(String json, String chave) {
 
@@ -39,7 +44,7 @@ public class VoskService {
 		return json.substring(inicio, fim).trim();
 	}
 
-	public String voice() {
+	public void voice() {
 		LibVosk.setLogLevel(LogLevel.WARNINGS);
 		
 		// Caminho do modelo
@@ -182,7 +187,7 @@ public class VoskService {
 								System.out.println(
 										"\n>>> Processando requisição");
 								
-								return comando;
+								majoraService.SendVoice(comando);
 							}
 
 							/*
@@ -236,7 +241,7 @@ public class VoskService {
 
 						System.out.println("\n>>> Aguardando nova ativação... " + "Diga '" + palavraAtivacao + "'.");
 						
-						return textoFinal;
+						majoraService.SendVoice(textoFinal);
 					}
 				}
 
@@ -269,10 +274,6 @@ public class VoskService {
 			System.err.println("Erro durante a execução: " + e.getMessage());
 
 			e.printStackTrace();
-			
-			return null;
 		}
-		
-		return null;
 	}
 }

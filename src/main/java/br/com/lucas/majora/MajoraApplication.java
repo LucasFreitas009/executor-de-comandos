@@ -4,14 +4,14 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import br.com.lucas.majora.service.MajoraService;
+import br.com.lucas.majora.service.VoskService;
 
 @SpringBootApplication
 public class MajoraApplication implements CommandLineRunner{
-	private MajoraService majora;
+	private VoskService vosk;
 	
-	public MajoraApplication(MajoraService majora) {
-		this.majora = majora;
+	public MajoraApplication(VoskService vosk) {
+		this.vosk = vosk;
 	}
 
 	public static void main(String[] args) {
@@ -21,10 +21,7 @@ public class MajoraApplication implements CommandLineRunner{
 	
 	@Override
 	public void run(String... args) {
-		while(true) {
-			
-			majora.SendVoice();
-		}
+		vosk.voice();
 	}
 
 }

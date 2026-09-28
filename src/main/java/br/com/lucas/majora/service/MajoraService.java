@@ -42,14 +42,14 @@ public class MajoraService {
 		return ResponseEntity.ok(command.executeCommand(instructionJson));
 	}
 	
-	public void SendVoice() {
+	public void SendVoice(String content) {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		
 		MajoraRequest request = new MajoraRequest();
 		
 		MajoraRequest.Messages message = new MajoraRequest.Messages();
-		message.setContent(vosk.voice());
+		message.setContent(content);
 		
 		List<MajoraRequest.Messages> messages = new ArrayList<>();
 		request.setMessages(messages);
